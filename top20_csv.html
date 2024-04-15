@@ -1,0 +1,60 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+  <title></title>
+  <meta name="Generator" content="Cocoa HTML Writer">
+  <meta name="CocoaVersion" content="2113.6">
+  <style type="text/css">
+    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica}
+    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica; min-height: 14.0px}
+  </style>
+</head>
+<body>
+<p class="p1">function downloadCSV(csvContent, fileName) {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });</p>
+<p class="p1"><span class="Apple-converted-space">    </span>var link = document.createElement('a');</p>
+<p class="p1"><span class="Apple-converted-space">    </span>link.href = URL.createObjectURL(blob);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>link.setAttribute('download', fileName);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>document.body.appendChild(link);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>link.click();</p>
+<p class="p1"><span class="Apple-converted-space">    </span>document.body.removeChild(link);</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">function extractPlayerDataAndDownloadCSV() {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>var playerData = [];</p>
+<p class="p1"><span class="Apple-converted-space">    </span>var rows = document.querySelectorAll('table#reportTable tbody tr');</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>// Add header row</p>
+<p class="p1"><span class="Apple-converted-space">    </span>var csvContent = 'Name,Current Rank,Previous Rank,Rank Change,Current Rating,Previous Rating,Rating Change,Wins,Losses\n';</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>rows.forEach(function(row) {</p>
+<p class="p1"><span class="Apple-converted-space">        </span>var cells = row.getElementsByTagName('td');</p>
+<p class="p1"><span class="Apple-converted-space">        </span>if (cells.length &gt; 0) {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>var clanImage = cells[0].querySelector('img');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>var playerName = clanImage ? cells[0].querySelector('a:nth-of-type(2)').textContent.trim() :<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">                                         </span>cells[0].querySelector('a').textContent.trim();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>var currentRank = cells[1].textContent.trim();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>var previousRank = cells[2].textContent.trim();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>var rankChange = cells[3].textContent.trim();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>var currentRating = cells[4].textContent.trim();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>var previousRating = cells[5].textContent.trim();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>var ratingChange = cells[6].textContent.trim();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>var wins = cells[7].textContent.trim();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>var losses = cells[8].textContent.trim();</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>// Create CSV row</p>
+<p class="p1"><span class="Apple-converted-space">            </span>var dataString = `"${playerName}",${currentRank},${previousRank},${rankChange},${currentRating},${previousRating},${ratingChange},${wins},${losses}`;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>csvContent += dataString + '\n';</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>});</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>// Trigger CSV download</p>
+<p class="p1"><span class="Apple-converted-space">    </span>downloadCSV(csvContent, 'players_ranking.csv');</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">// Run the function to get the data and download as CSV</p>
+<p class="p1">extractPlayerDataAndDownloadCSV();</p>
+</body>
+</html>
