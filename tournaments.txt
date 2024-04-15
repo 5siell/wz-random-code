@@ -1,0 +1,16 @@
+tournamentNames = {}
+
+async function getTournamentName(tournamentID) {
+    const req = await fetch("https://www.warzone.com/MultiPlayer/Tournament?ID=" + tournamentID);
+    const html = await req.text();
+    let match = html.match(/id="TournamentName">\s*(?:<[^>]+>\s*)*(.*)\s*<\/h1>/);
+    let name = match ? match[1].slice(12) : "ERROR";
+    tournamentNames[tournamentID] = name;
+    console.log(tournamentID, name); // Optional: log each ID and name to the console.
+}
+let baseDelay = 200; // 200 milliseconds delay between each request
+for (let id = 55300, delay = 0; id <= 55330; id++, delay += baseDelay) {
+    setTimeout(() => {
+        getTournamentName(id);
+    }, delay);
+}
