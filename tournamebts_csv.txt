@@ -1,0 +1,36 @@
+async function getAllTournamentNames() {
+    const tournamentIDs = Array.from({length: 100}, (_, i) => 55200 + i); 
+    const tournamentNames = {};
+
+    // Fetch all tournament names asynchronously
+    const fetchPromises = tournamentIDs.map(async (id) => {
+        const req = await fetch("https://www.warzone.com/MultiPlayer/Tournament?ID=" + id);
+        const html = await req.text();
+        let match = html.match(/id="TournamentName">\s*(?:<[^>]+>\s*)*(.*)\s*<\/h1>/);
+        let name = match ? match[1].trim() : "ERROR"; // Trim whitespace from the name
+        name = name.replace(/&#39;/g, "'").replace(/#/g, '%23'); // Replace HTML entity and encode hash
+        tournamentNames[id] = name;
+    });
+
+    // Wait for all fetches to complete
+    await Promise.all(fetchPromises);
+
+    // Convert to CSV format
+    let csvContent = "data:text/csv;charset=utf-8,ID,Name\n";
+    Object.entries(tournamentNames).forEach(([id, name]) => {
+        // Escape double quotes and enclose the field in double quotes
+        let escapedName = `"${name.replace(/"/g, '""')}"`;
+        csvContent += `${id},${escapedName}\n`;
+    });
+
+    // Trigger download
+    var encodedUri = encodeURI(csvContent);
+    var link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "tournament_names.csv");
+    document.body.appendChild(link); // Required for FF
+
+    link.click(); // Trigger the download
+}
+
+getAllTournamentNames();
