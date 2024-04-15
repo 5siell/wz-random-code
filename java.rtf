@@ -1,0 +1,48 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2639
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 function extractPlayerData() \{\
+    var playerData = [];\
+    var rows = document.querySelectorAll('table#reportTable tbody tr'); // Selects all the rows in the table body\
+\
+    rows.forEach(function(row) \{\
+        var cells = row.getElementsByTagName('td');\
+        if (cells.length > 0) \{\
+            // Check if player is in a clan by looking for an img tag within the td\
+            var clanImage = cells[0].querySelector('img');\
+            var playerName = clanImage ? cells[0].querySelector('a:nth-of-type(2)').textContent.trim() : \
+                                         cells[0].querySelector('a').textContent.trim();\
+            var currentRank = cells[1].textContent.trim();\
+            var previousRank = cells[2].textContent.trim();\
+            var rankChange = cells[3].textContent.trim();\
+            var currentRating = cells[4].textContent.trim();\
+            var previousRating = cells[5].textContent.trim();\
+            var ratingChange = cells[6].textContent.trim();\
+            var wins = cells[7].textContent.trim();\
+            var losses = cells[8].textContent.trim();\
+\
+            playerData.push(\{\
+                name: playerName,\
+                currentRank: currentRank,\
+                previousRank: previousRank,\
+                rankChange: rankChange,\
+                currentRating: currentRating,\
+                previousRating: previousRating,\
+                ratingChange: ratingChange,\
+                wins: wins,\
+                losses: losses\
+            \});\
+        \}\
+    \});\
+\
+    return playerData;\
+\}\
+\
+// Run the function to get the data\
+var data = extractPlayerData();\
+console.log(data);\
+}
