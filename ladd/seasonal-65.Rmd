@@ -4,9 +4,6 @@ author: "Christos"
 date: "2024-05-16"
 output: html_document
 ---
-```{r}
-setwd("/Users/simelagrigoriadou/Desktop/R Directory/warlight")
-```
 
 ```{r}
 # clear environment
