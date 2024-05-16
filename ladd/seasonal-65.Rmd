@@ -1,0 +1,111 @@
+---
+title: "Untitled"
+author: "Christos"
+date: "2024-05-16"
+output: html_document
+---
+```{r}
+setwd("/Users/simelagrigoriadou/Desktop/R Directory/warlight")
+```
+
+```{r}
+# clear environment
+rm(list=ls())
+
+```
+
+```{r}
+# Read the text file
+file_content <- readLines("laketown.txt")
+
+# Initialize lists to store player information and match results
+players <- list()
+results <- list()
+
+# Parse the file content
+for (line in file_content) {
+  if (startsWith(line, "addplayer")) {
+    parts <- unlist(strsplit(line, " ;"))
+    player_name <- gsub("addplayer ", "", parts[1])
+    player_id <- as.integer(parts[2])
+    players[[player_id + 1]] <- player_name  # Store player name by ID
+  } else if (startsWith(line, "addresult")) {
+    parts <- unlist(strsplit(line, " "))
+    first_picker <- as.integer(parts[2])
+    second_player <- as.integer(parts[3])
+    winner <- as.integer(parts[4])
+    results <- append(results, list(list(first_picker, second_player, winner)))
+  }
+}
+
+# Set initial rating to a value closer to the average observed rating
+initial_rating <- 3000
+
+# Initialize player ratings and activity counts
+player_ratings <- rep(initial_rating, length(players))
+player_activity <- rep(0, length(players))  
+names(player_ratings) <- unlist(players)
+names(player_activity) <- unlist(players)
+
+# Define Bayesian Elo update function with a single K-factor
+update_elo <- function(rating_a, rating_b, winner, k_factor = 150) {
+  prob_a_wins <- 1 / (1 + 10^((rating_b - rating_a) / 400))
+  prob_b_wins <- 1 - prob_a_wins
+
+  if (winner == 2) {
+    rating_a <- rating_a + k_factor * (1 - prob_a_wins)
+    rating_b <- rating_b + k_factor * (0 - prob_b_wins)
+  } else if (winner == 0) {
+    rating_a <- rating_a + k_factor * (0 - prob_a_wins)
+    rating_b <- rating_b + k_factor * (1 - prob_b_wins)
+  }
+  
+  return(c(rating_a, rating_b))
+}
+
+# Update player ratings based on match results
+for (result in results) {
+  first_picker <- result[[1]] + 1
+  second_player <- result[[2]] + 1
+  winner <- result[[3]]
+  
+  # Update player activity counts
+  player_activity[first_picker] <- player_activity[first_picker] + 1
+  player_activity[second_player] <- player_activity[second_player] + 1
+  
+  # Update player ratings using the unified K-factor
+  ratings <- update_elo(player_ratings[first_picker], player_ratings[second_player], winner)
+  player_ratings[first_picker] <- ratings[1]
+  player_ratings[second_player] <- ratings[2]
+}
+
+# Penalty for fewer than 20 games
+penalty_per_missing_game <- 65  # Penalty for fewer than 20 games
+
+# Apply penalties to player ratings
+for (i in seq_along(player_ratings)) {
+  # Apply penalty for fewer than 20 games
+  if (player_activity[i] < 20) {
+    penalty_games <- 20 - player_activity[i]
+    player_ratings[i] <- player_ratings[i] - (penalty_per_missing_game * penalty_games)
+  }
+}
+
+# Sort the player ratings from highest to lowest
+sorted_player_ratings <- sort(player_ratings, decreasing = TRUE)
+
+```
+
+```{r}
+print(sorted_player_ratings)
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
