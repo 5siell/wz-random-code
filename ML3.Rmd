@@ -12,6 +12,7 @@ rm(list=ls())
 
 Libraries & Directory
 ```{r setup, include=FALSE}
+setwd("/Users/simelagrigoriadou/Desktop/R Directory/warlight")
 library(dplyr)
 library(tidyr)
 library(readr)
@@ -50,12 +51,12 @@ write.csv(tier_win_probabilities, "tier_win_probabilities.txt", row.names = FALS
 ```
 
 ```{r}
-# Verify your data frames
+
 print("Team Tiers Data:")
 print(mme2vs2)
 
 print("Tier Win Probabilities Data:")
-print(head(tier_win_probabilities, 14))  # Display the first 14 rows for clarity
+print(head(tier_win_probabilities, 14))  
 ```
 
 
