@@ -1,0 +1,282 @@
+---
+title: "Untitled"
+author: "Christos"
+date: "2024-10-01"
+output: html_document
+---
+
+```{r}
+# clear environment
+rm(list=ls())
+```
+
+
+```{r}
+library(dplyr)
+library(tidyr)
+library(readr)
+
+
+```
+
+```{r}
+# Read the data from the CSV file
+data <- read.csv("lnd_won.csv", stringsAsFactors = FALSE)
+
+# Ensure expected probabilities are numeric
+data$exp_prob_left_wins <- as.numeric(data$exp_prob_left_wins)
+data$exp_prob_right_wins <- as.numeric(data$exp_prob_right_wins)
+
+# Function to compute the Poisson binomial PMF
+poisson_binomial_pmf <- function(p) {
+  n <- length(p)
+  prob <- numeric(n + 1)
+  prob[1] <- 1  # prob[0] in mathematical notation
+  
+  for (i in 1:n) {
+    pi <- p[i]
+    for (k in seq(i + 1, 2, by = -1)) {
+      prob[k] <- prob[k] * (1 - pi) + prob[k - 1] * pi
+    }
+    prob[1] <- prob[1] * (1 - pi)
+  }
+  
+  return(prob)
+}
+```
+
+```{r}
+
+
+# Create a list of all unique teams
+teams <- unique(c(data$team_left, data$team_right))
+
+# Initialize a data frame to store results
+results <- data.frame(
+  Team = character(),
+  Expected_Wins = numeric(),
+  Actual_Wins = numeric(),
+  P_Value = numeric(),
+  stringsAsFactors = FALSE
+)
+
+# Loop over each team
+for (team in teams) {
+  # Subset matches where the team participated
+  matches <- subset(data, team_left == team | team_right == team)
+  
+  # Initialize vectors for win probabilities and outcomes
+  p_win <- c()    # Probability of the team winning each match
+  outcomes <- c() # Actual outcomes (1 if team won, 0 if lost)
+  
+  for (i in 1:nrow(matches)) {
+    match <- matches[i, ]
+    
+    # Determine if the team is on the left or right
+    if (match$team_left == team) {
+      p <- match$exp_prob_left_wins
+      outcome <- ifelse(match$winner == team, 1, 0)
+    } else {
+      p <- match$exp_prob_right_wins
+      outcome <- ifelse(match$winner == team, 1, 0)
+    }
+    
+    # Append to the vectors
+    p_win <- c(p_win, p)
+    outcomes <- c(outcomes, outcome)
+  }
+  
+  # Skip teams with no matches
+  if (length(p_win) == 0) {
+    next
+  }
+  
+  # Calculate expected wins and actual wins
+  expected_wins <- sum(p_win)
+  actual_wins <- sum(outcomes)
+  
+  # Compute the PMF
+  pmf <- poisson_binomial_pmf(p_win)
+  
+  # Compute cumulative probabilities
+  cumulative_probs <- cumsum(pmf)
+  
+  # Determine the p-value based on overperformance or underperformance
+  if (actual_wins < expected_wins) {
+    # Underperformance: p-value = 2 * P(X <= A)
+    p_value <- 2 * cumulative_probs[actual_wins + 1]
+  } else {
+    # Overperformance: p-value = 2 * P(X >= A)
+    p_value <- 2 * (1 - cumulative_probs[actual_wins])
+  }
+  
+  # Ensure p-value does not exceed 1
+  if (p_value > 1) {
+    p_value <- 1
+  }
+  
+  # Append results to the data frame
+  results <- rbind(results, data.frame(
+    Team = team,
+    Expected_Wins = expected_wins,
+    Actual_Wins = actual_wins,
+    P_Value = p_value,
+    stringsAsFactors = FALSE
+  ))
+}
+
+# Adjust p-values for multiple comparisons uising Benjamini-Hochberg procedure
+results$Adjusted_P_Value <- p.adjust(results$P_Value, method = "BH")
+
+# Sort results by p-value
+results <- results[order(results$P_Value), ]
+
+# Display the results
+print(results)
+
+```
+
+```{r}
+# Read the data from the CSV file
+data <- read.csv("beep_won.csv", stringsAsFactors = FALSE)
+
+# Ensure expected probabilities are numeric
+data$exp_prob_left_wins <- as.numeric(data$exp_prob_left_wins)
+data$exp_prob_right_wins <- as.numeric(data$exp_prob_right_wins)
+
+# Function to compute the Poisson binomial PMF
+poisson_binomial_pmf <- function(p) {
+  n <- length(p)
+  prob <- numeric(n + 1)
+  prob[1] <- 1  # prob[0] in mathematical notation
+  
+  for (i in 1:n) {
+    pi <- p[i]
+    for (k in seq(i + 1, 2, by = -1)) {
+      prob[k] <- prob[k] * (1 - pi) + prob[k - 1] * pi
+    }
+    prob[1] <- prob[1] * (1 - pi)
+  }
+  
+  return(prob)
+}
+```
+
+```{r}
+
+
+# Create a list of all unique teams
+teams <- unique(c(data$team_left, data$team_right))
+
+# Initialize a data frame to store results
+results <- data.frame(
+  Team = character(),
+  Expected_Wins = numeric(),
+  Actual_Wins = numeric(),
+  P_Value = numeric(),
+  stringsAsFactors = FALSE
+)
+
+# Loop over each team
+for (team in teams) {
+  # Subset matches where the team participated
+  matches <- subset(data, team_left == team | team_right == team)
+  
+  # Initialize vectors for win probabilities and outcomes
+  p_win <- c()    # Probability of the team winning each match
+  outcomes <- c() # Actual outcomes (1 if team won, 0 if lost)
+  
+  for (i in 1:nrow(matches)) {
+    match <- matches[i, ]
+    
+    # Determine if the team is on the left or right
+    if (match$team_left == team) {
+      p <- match$exp_prob_left_wins
+      outcome <- ifelse(match$winner == team, 1, 0)
+    } else {
+      p <- match$exp_prob_right_wins
+      outcome <- ifelse(match$winner == team, 1, 0)
+    }
+    
+    # Append to the vectors
+    p_win <- c(p_win, p)
+    outcomes <- c(outcomes, outcome)
+  }
+  
+  # Skip teams with no matches
+  if (length(p_win) == 0) {
+    next
+  }
+  
+  # Calculate expected wins and actual wins
+  expected_wins <- sum(p_win)
+  actual_wins <- sum(outcomes)
+  
+  # Compute the PMF
+  pmf <- poisson_binomial_pmf(p_win)
+  
+  # Compute cumulative probabilities
+  cumulative_probs <- cumsum(pmf)
+  
+  # Determine the p-value based on overperformance or underperformance
+  if (actual_wins < expected_wins) {
+    # Underperformance: p-value = 2 * P(X <= A)
+    p_value <- 2 * cumulative_probs[actual_wins + 1]
+  } else {
+    # Overperformance: p-value = 2 * P(X >= A)
+    p_value <- 2 * (1 - cumulative_probs[actual_wins])
+  }
+  
+  # Ensure p-value does not exceed 1
+  if (p_value > 1) {
+    p_value <- 1
+  }
+  
+  # Append results to the data frame
+  results <- rbind(results, data.frame(
+    Team = team,
+    Expected_Wins = expected_wins,
+    Actual_Wins = actual_wins,
+    P_Value = p_value,
+    stringsAsFactors = FALSE
+  ))
+}
+
+# Adjust p-values for multiple comparisons uising Benjamini-Hochberg procedure
+results$Adjusted_P_Value <- p.adjust(results$P_Value, method = "BH")
+
+# Sort results by p-value
+results <- results[order(results$P_Value), ]
+
+# Display the results
+print(results)
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+
+
+
